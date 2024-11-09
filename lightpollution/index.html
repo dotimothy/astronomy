@@ -254,7 +254,7 @@ function getInfoFromLonLat(elatlng,year) {
 	xhr.open("GET", url, true);
 	xhr.send();
 
-    function sqmToBortle(sqm) { //uses ClearDarkSky approximation 
+    function sqmToBortle(sqm) { //uses ClearDarkSky approximation @ https://www.cleardarksky.com/maps/lp/large_light_pollution_map.html
     return sqm >= 21.99 ? 1 :
            sqm >= 21.89 ? 2 :
            sqm >= 21.69 ? 3 :
