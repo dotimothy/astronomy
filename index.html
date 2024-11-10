@@ -9,30 +9,54 @@
         <meta charset="utf-8" />
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌌</text></svg>">
     </head>
-
+    
     <style>
-        #backgroundVid {
+        body {
+            background-color: black
+        }
+        #backgroundVid, #backgroundVidReversed {
             position: fixed;
             min-width: 100%;
             min-height: 100%;
-            right: 0;
-            bottom: 0;
+            left: 0;
+            top: 0;
             pointer-events: none;
         }
     </style>
 
     <script> 
-        const backgroundVid = document.getElementById('backgroundVid');
+        let reversed = false;
+        let backgroundVid;
+        let backgroundVidReversed;
         window.onload = function() {
-            backgroundVid.playbackSpeed = 0.8;
+            backgroundVid = document.getElementById('backgroundVid');
+            backgroundVidReversed = document.getElementById('backgroundVidReversed');
+            backgroundVid.playbackRate = 0.5;
+            backgroundVidReversed.playbackRate = 0.5;
+            backgroundVid.addEventListener('timeupdate',function () {
+                console.log(backgroundVid.currentTime);
+                if((!reversed && backgroundVid.currentTime >= backgroundVid.duration - 0.2)) {
+                    console.log('Reversing Background!');
+                    reversed = true;
+                    backgroundVidReversed.hidden = false; 
+                    setTimeout(function() {backgroundVid.hidden = true;},200);
+                } 
+            });
+            backgroundVidReversed.addEventListener('timeupdate',function() {
+                console.log(backgroundVidReversed.currentTime);
+                if((reversed && backgroundVidReversed.currentTime >= backgroundVidReversed.duration - 0.2)) {
+                    console.log('Forwarding Background!');
+                    reversed = false;
+                    backgroundVid.hidden = false;
+                    setTimeout(function() {backgroundVidReversed.hidden = true;},100);
+                }
+            });
         }
     </script>
-
-    <body> 
-        <video autoplay muted loop id="backgroundVid">
-            <source src="media/cholamestartrails.mp4" type="video/mp4">
-        </video>
+    
+    <body>
+        <video autoplay muted loop id="backgroundVid" src="media/pinnaclesstartrails.mp4" type="video/mp4" ></video>
+        <video hidden autoplay muted loop id="backgroundVidReversed" src="media/pinnaclesstartrailsreversed.mp4" type="video/mp4" ></video>
     </body>
-
 
 </html>
