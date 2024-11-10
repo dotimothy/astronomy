@@ -1,3 +1,38 @@
-<script>
-    window.location.href = './lightpollution'
-</script>
+<!DOCTYPE html>
+
+<!--- Astronomy Augumentation Website 🌌--->
+<!--- Modified by Timothy Do --->
+<html>
+    <base target="_blank">
+    <head>
+        <title>Astronomy Augumentation</title>
+        <meta charset="utf-8" />
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌌</text></svg>">
+    </head>
+
+    <style>
+        #backgroundVid {
+            position: fixed;
+            min-width: 100%;
+            min-height: 100%;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+    </style>
+
+    <script> 
+        const backgroundVid = document.getElementById('backgroundVid');
+        window.onload = function() {
+            backgroundVid.playbackSpeed = 0.8;
+        }
+    </script>
+
+    <body> 
+        <video autoplay muted loop id="backgroundVid">
+            <source src="media/cholamestartrails.mp4" type="video/mp4">
+        </video>
+    </body>
+
+
+</html>
