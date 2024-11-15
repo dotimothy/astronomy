@@ -1,3 +1,63 @@
 <!DOCTYPE html>
+
+<!-- Timothy Do's Astrophotography Site!-->
 <html>
+    <head>
+        <title>Timothy's Astrophotography</title>
+        <meta charset="utf-8" />
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📷</text></svg>">
+        <link href='https://fonts.googleapis.com/css?family=Product+Sans' rel='stylesheet' type='text/css'> 
+        <script src="imgNames.js"></script>
+    </head>
+
+    <style>
+        body {
+            background-color: black;
+        }
+        h1 {
+            color: white;
+            font-family: Product Sans;
+        }
+        #gallery {
+            display: inline-block;
+        }
+        .thumb {
+            width:20%;
+            animation: fadein 0.5s;
+            opacity: 100%;
+        }
+        .thumb:hover {
+            opacity: 50%;
+            transition: 0.25s;
+        }
+        @keyframes fadein {
+            0% {opacity: 0%;}
+            100% {opacity: 100%;}
+        }
+    </style>
+
+    <script>
+        let gallery;
+        let i = 0;
+        let thumbInterval;
+        function loadImages() {
+            if(i < imgNames.length) {
+                loadImage(imgNames[i]);
+                i++;
+            } else {
+                clearInterval(thumbInterval);
+            }
+        }
+        function loadImage(imgName) {
+            gallery.innerHTML += `<img src='./thumbs/${imgName}.jpg' class='thumb' alt='${imgName}'/>`;
+        }
+        window.onload = function() {
+            gallery = document.getElementById('gallery');
+            thumbInterval = setInterval(loadImages,500);
+        }
+    </script>
+    <body>
+        <h1 id="title">🌌 Choose an Astrophoto: 🌌</h1>
+        <div id="gallery"></div>
+    </body>
 </html>
