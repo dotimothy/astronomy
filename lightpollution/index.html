@@ -14,6 +14,8 @@
         <link rel="stylesheet" href="./assets/Control.Geocoder.css" />
         <link rel="stylesheet" href="./assets/L.Control.Range.css" />
         <link href="./assets/AnimatedSearchBox.css" rel="stylesheet">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    </head>
 
     <style>
         body {
@@ -32,11 +34,10 @@
         #map {
             z-index: 0;
         }
-        #currentlocation {
+        .custombutton {
             position: fixed;
             user-select: none;
             left: 1%;
-            bottom: 0.25%;
             font-size: 1.75em;
             background-color: white;
             border-style: solid; 
@@ -45,23 +46,28 @@
             opacity: 100%;
             transition: 0.125s;
         }
-        #currentlocation:hover {
+        .custombutton:hover {
             opacity: 50%;
             transition: 0.125s;
         }
-        #currentlocation:active {
+        .custombutton:active {
             transform: translateY(10px);
             transition: 0.125s;
         }
+        #currentlocation {
+            bottom: 0.25%;
+        }
+        #fullscreentoggle {
+            bottom: 5.5%;
+            font-size: 2em;
+        }
     </style>
 
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-
-    </head>
     <body>
 
         <div id="map"></div>
-        <h1 id="currentlocation" onclick="gotoCurrentLocation()">📍</h1>
+        <h1 class="custombutton" id="fullscreentoggle" onclick="fullscreenToggle()">⛶</h1>
+        <h1 class="custombutton" id="currentlocation" onclick="gotoCurrentLocation()">📍</h1>
 
         <script src="./assets/leaflet.js"></script>
         <script src="./assets/Control.Geocoder.js"></script>
@@ -391,6 +397,15 @@
 
     function gotoCurrentLocation() {
         map.locate({setView: true, maxZoom: 12});
+    }
+
+    function fullscreenToggle() {
+        let inFullscreen = !window.screenTop && !window.screenY;
+        if(inFullscreen) {
+            document.body.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
     }
 
     </script>
