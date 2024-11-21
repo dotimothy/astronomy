@@ -73,10 +73,11 @@
             user-select: none;
         }
         #full {
+            position: relative;
             width: 100%;
             height: 100%;
             object-fit: cover;
-            animation: grow 1s;
+            animation: grow 0.5s;
             transition: 0.5s;
         }
         @keyframes grow {
@@ -99,6 +100,7 @@
             right: 5%;
             opacity: 5%;
             transition: 0.25s;
+            z-index: 2;
         }
         #exitViewer:hover {
             opacity: 100%;
@@ -112,13 +114,18 @@
     </style>
 
     <script>
-        const urlParams = new URLSearchParams();
+        const urlParams = new URLSearchParams(window.location.search);
+        let preload = urlParams.has('preload') && urlParams.get('preload') == 'true';
+        let doFullscreen = !isMobileDevice() || urlParams.has('fullscreen') && urlParams.get('fullscreen') == 'true';
         let gallery;
         let imageviewer;
-        let preload = urlParams.has('preload') && urlParams.get('preload') == 'true';
         let revealCounter = 0;
         let revealInterval;
         let madeFullscreen = false;
+
+        function isMobileDevice() {
+            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+        }
 
         function preloadImages() {
             for(let i = 0; i < imgNames.length; i++) {
@@ -158,8 +165,8 @@
         }
 
         function viewImg(imgName) {
-            makeFullscreen = !document.fullscreenElement;
-            if(makeFullscreen) {
+            madeFullscreen = doFullscreen && !document.fullscreenElement;
+            if(madeFullscreen) {
                 document.body.requestFullscreen();
             }
             imageviewer.innerHTML += `<img id='full' src='./fulls/${imgName}.jpg'/>`;
@@ -179,9 +186,9 @@
                 setTimeout(function() {
                     full.remove();
                     imageviewer.hidden = true;
-                    if(makeFullscreen) {
+                    if(madeFullscreen) {
                         document.exitFullscreen();
-                        makeFullscreen = false;
+                        madeFullscreen = false;
                     } 
                 },500);
             }
