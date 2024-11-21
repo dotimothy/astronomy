@@ -1,0 +1,6 @@
+# 🌌 Requirements File for Preparing Website, and Data Exploration 🌌
+opencv-python
+pillow
+numpy 
+tqdm
+jupyter

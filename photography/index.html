@@ -112,24 +112,42 @@
     </style>
 
     <script>
+        const urlParams = new URLSearchParams();
         let gallery;
         let imageviewer;
+        let preload = urlParams.has('preload') && urlParams.get('preload') == 'true';
         let revealCounter = 0;
         let revealInterval;
+        let madeFullscreen = false;
+
+        function preloadImages() {
+            for(let i = 0; i < imgNames.length; i++) {
+                preloadImage(`./fulls/${imgNames[i]}.jpg`); 
+            }
+        }
+
+        function preloadImage(url) {
+            var img = new Image();
+            img.src = url;
+        }
+
         function loadImages() {
             for (let i = 0; i < imgNames.length; i++) {
                 loadImage(imgNames[i]);
             }
             document.querySelector('footer').hidden = false;
         }
+
         function loadImage(imgName) {
             gallery.innerHTML += `<img onclick='viewImg("${imgName}")' id='${imgName}' src='./thumbs/${imgName}.jpg' class='thumbhidden' alt='${imgName}'/>`;
         }
+
         function revealImage(imgName) {
             let img = document.getElementById(imgName);
             img.classList.remove('thumbhidden'); 
             img.classList.add('thumb');
         }
+
         function revealImages() {
             if(revealCounter < imgNames.length) {
                 revealImage(imgNames[revealCounter]);
@@ -138,13 +156,18 @@
                 clearInterval(revealInterval);
             }
         }
+
         function viewImg(imgName) {
+            makeFullscreen = !document.fullscreenElement;
+            if(makeFullscreen) {
+                document.body.requestFullscreen();
+            }
             imageviewer.innerHTML += `<img id='full' src='./fulls/${imgName}.jpg'/>`;
             imageviewer.hidden = false;
         }
 
         function goHome() {
-            window.location.href = "../index.html"
+            window.location.href = "../index.html";
         }
 
         function exitViewer() {
@@ -156,18 +179,26 @@
                 setTimeout(function() {
                     full.remove();
                     imageviewer.hidden = true;
+                    if(makeFullscreen) {
+                        document.exitFullscreen();
+                        makeFullscreen = false;
+                    } 
                 },500);
             }
-           
         }
         
         window.onload = function() {
+            if(preload) {
+                console.log('Preloading Full Res Images!');
+                preloadImages();
+            }
             gallery = document.getElementById('gallery');
             imageviewer = document.getElementById('imageviewer');
             loadImages();
             revealInterval = setInterval(revealImages,75);
         }
     </script>
+
     <body>
         <h1 id="title">🌌 Timothy's Astrophotography Gallery 🌌</h1>
         <div id="gallery"></div>
