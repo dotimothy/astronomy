@@ -205,6 +205,13 @@
             loadImages();
             revealInterval = setInterval(revealImages,75);
         }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key == "Escape") {
+                console.log('Escape Key Pressed');
+                exitViewer();
+            }
+        });
     </script>
 
     <body>
