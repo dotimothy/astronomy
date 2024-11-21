@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 
 <!-- Timothy Do's Astrophotography Site!-->
+ <!--- Modified by Timothy Do --->
 <html>
+    <base target="_blank">
     <head>
         <title>Timothy's Astrophotography</title>
         <meta charset="utf-8" />
@@ -14,15 +16,25 @@
         body {
             background-color: black;
         }
-        h1 {
+        h1, h2 {
             color: white;
             font-family: Product Sans;
+        }
+        h1 { 
+            font-size: 3em;
+        }
+        h2 {
+            font-size: 2em;
         }
         #gallery {
             display: inline-block;
         }
+        .thumbhidden {
+            width:14.28%;
+            opacity: 0%;
+        }
         .thumb {
-            width:20%;
+            width:14.28%;
             animation: fadein 0.5s;
             opacity: 100%;
         }
@@ -34,30 +46,139 @@
             0% {opacity: 0%;}
             100% {opacity: 100%;}
         }
+        button {
+            font-size: 8em;
+            background-color: transparent;
+            border: none;
+            opacity: 100%;
+            transition: 0.25s;
+            user-select: none;
+        }
+        button:hover {
+            opacity: 50%; 
+            transition: 0.25s;
+        }
+        button:active {
+            transform: translateY(10px);
+        }
+        #imageviewer {
+            position: fixed;
+            top: 0%; 
+            left: 0%;
+            width: 100%;
+            height: 100%;
+            margin: 0; 
+            padding: 0; 
+            z-index: 1;
+            user-select: none;
+        }
+        #full {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            animation: grow 1s;
+            transition: 0.5s;
+        }
+        @keyframes grow {
+            0% {
+                top: 50%;
+                left: 50%;
+                width: 0%;
+                height: 0%; 
+            }
+            100% {
+                top: 0%;
+                left: 0%;
+                width: 100%; 
+                height: 100%;
+            }
+        }
+        #exitViewer {
+            position: fixed;
+            top: 5%;
+            right: 5%;
+            opacity: 5%;
+            transition: 0.25s;
+        }
+        #exitViewer:hover {
+            opacity: 100%;
+            transition: 0.25s;
+        }
+        #home {
+            position: fixed;
+            bottom: 5%;
+            right: 5%;
+        }
     </style>
 
     <script>
         let gallery;
-        let i = 0;
-        let thumbInterval;
+        let imageviewer;
+        let revealCounter = 0;
+        let revealInterval;
         function loadImages() {
-            if(i < imgNames.length) {
+            for (let i = 0; i < imgNames.length; i++) {
                 loadImage(imgNames[i]);
-                i++;
-            } else {
-                clearInterval(thumbInterval);
             }
+            document.querySelector('footer').hidden = false;
         }
         function loadImage(imgName) {
-            gallery.innerHTML += `<img src='./thumbs/${imgName}.jpg' class='thumb' alt='${imgName}'/>`;
+            gallery.innerHTML += `<img onclick='viewImg("${imgName}")' id='${imgName}' src='./thumbs/${imgName}.jpg' class='thumbhidden' alt='${imgName}'/>`;
         }
+        function revealImage(imgName) {
+            let img = document.getElementById(imgName);
+            img.classList.remove('thumbhidden'); 
+            img.classList.add('thumb');
+        }
+        function revealImages() {
+            if(revealCounter < imgNames.length) {
+                revealImage(imgNames[revealCounter]);
+                revealCounter++;
+            } else {
+                clearInterval(revealInterval);
+            }
+        }
+        function viewImg(imgName) {
+            imageviewer.innerHTML += `<img id='full' src='./fulls/${imgName}.jpg'/>`;
+            imageviewer.hidden = false;
+        }
+
+        function goHome() {
+            window.location.href = "../index.html"
+        }
+
+        function exitViewer() {
+            let full = document.getElementById('full');
+            console.log(full);
+            if(full != null) {
+                full.style.width = '0%'; 
+                full.style.height = '0%';
+                setTimeout(function() {
+                    full.remove();
+                    imageviewer.hidden = true;
+                },500);
+            }
+           
+        }
+        
         window.onload = function() {
             gallery = document.getElementById('gallery');
-            thumbInterval = setInterval(loadImages,300);
+            imageviewer = document.getElementById('imageviewer');
+            loadImages();
+            revealInterval = setInterval(revealImages,75);
         }
     </script>
     <body>
-        <h1 id="title">🌌 Choose an Astrophoto: 🌌</h1>
+        <h1 id="title">🌌 Timothy's Astrophotography Gallery 🌌</h1>
         <div id="gallery"></div>
+        <div hidden id="imageviewer">
+            <button id="exitViewer" onclick="exitViewer()">❌</button>
+        </div>
     </body>
+
+    <footer hidden>
+        <h2>© <a href="https://timothydo.me">Timothy Do</a> 2024. All Rights Reserved.</h2>
+        <button id="home" onclick="goHome()">🏠</button>
+    </footer>
+
 </html>
