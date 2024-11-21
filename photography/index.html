@@ -116,7 +116,8 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let preload = urlParams.has('preload') && urlParams.get('preload') == 'true';
-        let doFullscreen = !isMobileDevice() || urlParams.has('fullscreen') && urlParams.get('fullscreen') == 'true';
+        let dev = urlParams.has('mode') && urlParams.get('mode') == 'dev';
+        let doFullscreen = !isMobileDevice();
         let gallery;
         let imageviewer;
         let revealCounter = 0;
@@ -124,7 +125,7 @@
         let madeFullscreen = false;
 
         function isMobileDevice() {
-            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1) && !dev;
         }
 
         function preloadImages() {
