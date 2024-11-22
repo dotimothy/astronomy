@@ -15,7 +15,7 @@ imgNames.sort()
 newline = '\n'
 empty = '' 
 
-def makeTSList(split=2):
+def makeImgList(split=2):
     with open(imgNameJS,'w') as file:
         arrayStr = 'const imgNames = ['
         for i,name in tqdm(enumerate(imgNames)): 
@@ -47,8 +47,8 @@ def getMetadatas(check=False):
                 json.dump(metadata,metadataFile,indent=4)
 
 if __name__ == '__main__':
-    print('Making Timestamp List!');
-    makeTSList()
+    print('Making Image List!');
+    makeImgList()
     print('Making Thumbnails!')
     getThumbs(check=False)
     print('Extracting Metadata!')

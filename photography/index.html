@@ -78,7 +78,7 @@
             height: 100%;
             object-fit: cover;
             animation: grow 0.5s;
-            transition: 0.5s;
+            transition: 0.25s;
             user-select: none;
             pointer-events: none;
         }
@@ -95,6 +95,20 @@
                 width: 100%; 
                 height: 100%;
             }
+        }
+        #metadata {
+            position: fixed;
+            background-color: black;
+            width: 100%;
+            height:20%;
+            bottom: 0%;
+            opacity: 4%;
+            z-index: 2;
+            transition: 0.25s ease-in;
+        }
+        #metadata:hover {
+            opacity: 90%;
+            transition: 0.25s ease-in-out
         }
         #exitViewer {
             position: fixed;
@@ -125,6 +139,7 @@
         let gallery;
         let imageviewer;
         let exitViewer;
+        let metadata;
         let revealCounter = 0;
         let revealInterval;
         let madeFullscreen = false;
@@ -172,13 +187,43 @@
 
         function viewFull(imgName) {
             exitViewer.hidden = false;
+            metadata.hidden = false;
             madeFullscreen = doFullscreen && !document.fullscreenElement;
+            fullPath = `./fulls/${imgName}.jpg`
+            if(!preload) {
+                preloadImage(fullPath);
+            }
             if(madeFullscreen) {
                 document.body.requestFullscreen();
             }
-            imageviewer.innerHTML += `<img id='full' src='./fulls/${imgName}.jpg'/>`;
+            imageviewer.innerHTML += `<img id='full' src=${fullPath}/>`;
             imageviewer.hidden = false;
-            
+            viewMetadata(imgName);
+        }
+
+        function getJSONData(url) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url, false); // `false` makes the request synchronous
+            try {
+                xhr.send(); // Send the request
+                if (xhr.status === 200) {
+                return JSON.parse(xhr.responseText); // Parse and return JSON data
+                } else {
+                console.error('Request failed with status:', xhr.status);
+                return null;
+                }
+            } catch (error) {
+                console.error('Error fetching JSON:', error);
+                return null;
+            }
+        }
+
+        function viewMetadata(imgName) {
+            let metadataPath = `./metadata/${imgName}.json`;
+            let jsonData = getJSONData(metadataPath);
+            let cameraModel = jsonData['Image Model'];
+            metadata.innerHTML += `<p>${imgName}.jpg</p>`;
+            metadata.innerHTML += `<h2>📷: ${cameraModel}</h2>`;
         }
 
         function goHome() {
@@ -187,6 +232,8 @@
 
         function exitView() {
             exitViewer.hidden = true;
+            metadata.hidden = true;
+            metadata.innerHTML = '<h1>Metadata:</h1>';
             let full = document.getElementById('full');
             console.log(full);
             if(full != null) {
@@ -199,7 +246,7 @@
                 setTimeout(function() {
                     full.remove();
                     imageviewer.hidden = true;
-                },500);
+                },250);
             }
         }
         
@@ -230,6 +277,7 @@
             gallery = document.getElementById('gallery');
             imageviewer = document.getElementById('imageviewer');
             title = document.getElementById('title');
+            metadata = document.getElementById('metadata');
             exitViewer = document.getElementById('exitViewer');
             loadThumbs();
             revealInterval = setInterval(revealThumbs,75);
@@ -250,7 +298,10 @@
         <h1 id="title"></h1>
         <div id="gallery"></div>
         <div hidden id="imageviewer">
-            <button id="exitViewer" onclick="exitView()">X</button>
+            <button hidden id="exitViewer" onclick="exitView()">X</button>
+            <div hidden id="metadata">
+                <h1>Metadata:</h1>
+            </div>
         </div>
     </body>
 
