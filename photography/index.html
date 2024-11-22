@@ -133,7 +133,7 @@
             return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1) && !dev;
         }
 
-        function preloadImages() {
+        function preloadFulls() {
             for(let i = 0; i < imgNames.length; i++) {
                 preloadImage(`./fulls/${imgNames[i]}.jpg`); 
             }
@@ -144,33 +144,33 @@
             img.src = url;
         }
 
-        function loadImages() {
+        function loadThumbs() {
             for (let i = 0; i < imgNames.length; i++) {
-                loadImage(imgNames[i]);
+                loadThumb(imgNames[i]);
             }
             document.querySelector('footer').hidden = false;
         }
 
-        function loadImage(imgName) {
-            gallery.innerHTML += `<img onclick='viewImg("${imgName}")' id='${imgName}' src='./thumbs/${imgName}.jpg' class='thumbhidden' alt='${imgName}'/>`;
+        function loadThumb(imgName) {
+            gallery.innerHTML += `<img onclick='viewFull("${imgName}")' id='${imgName}' src='./thumbs/${imgName}.jpg' class='thumbhidden' alt='${imgName}'/>`;
         }
 
-        function revealImage(imgName) {
+        function revealThumb(imgName) {
             let img = document.getElementById(imgName);
             img.classList.remove('thumbhidden'); 
             img.classList.add('thumb');
         }
 
-        function revealImages() {
+        function revealThumbs() {
             if(revealCounter < imgNames.length) {
-                revealImage(imgNames[revealCounter]);
+                revealThumb(imgNames[revealCounter]);
                 revealCounter++;
             } else {
                 clearInterval(revealInterval);
             }
         }
 
-        function viewImg(imgName) {
+        function viewFull(imgName) {
             exitViewer.hidden = false;
             madeFullscreen = doFullscreen && !document.fullscreenElement;
             if(madeFullscreen) {
@@ -225,14 +225,14 @@
         window.onload = function() {
             if(preload) {
                 console.log('Preloading Full Res Images!');
-                preloadImages();
+                preloadFulls();
             }
             gallery = document.getElementById('gallery');
             imageviewer = document.getElementById('imageviewer');
             title = document.getElementById('title');
             exitViewer = document.getElementById('exitViewer');
-            loadImages();
-            revealInterval = setInterval(revealImages,75);
+            loadThumbs();
+            revealInterval = setInterval(revealThumbs,75);
             titleInterval = setInterval(fillTitle,75);
         }
 
