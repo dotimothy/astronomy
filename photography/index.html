@@ -15,16 +15,20 @@
         body {
             background-color: black;
         }
-        h1, h2 {
+        h1, h2, p {
             color: white;
             font-family: Product Sans;
-            font-size: 3em;
         }
         h1 { 
             font-size: 3em;
+            font-weight: bolder;
         }
         h2 {
             font-size: 2em;
+        }
+        p {
+            font-size: 1.5em;
+            font-weight: lighter;
         }
         #gallery {
             display: inline-block;
@@ -61,7 +65,7 @@
         button:active {
             transform: translateY(10px);
         }
-        #imageviewer {
+        #imageViewer {
             position: fixed;
             top: 0%; 
             left: 0%;
@@ -96,17 +100,18 @@
                 height: 100%;
             }
         }
-        #metadata {
+        #metadataViewer {
             position: fixed;
             background-color: black;
             width: 100%;
-            height:20%;
+            height: 25%;
             bottom: 0%;
             opacity: 4%;
             z-index: 2;
+            line-height: 1.25em;
             transition: 0.25s ease-in;
         }
-        #metadata:hover {
+        #metadataViewer:hover {
             opacity: 90%;
             transition: 0.25s ease-in-out
         }
@@ -135,11 +140,12 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let preload = urlParams.has('preload') && urlParams.get('preload') == 'true';
-        let doFullscreen = !isMobileDevice();
+        let doFullscreen = !isMobileDevice() && (!urlParams.has('fullscreen') || urlParams.get('fullscreen') == 'true');
         let gallery;
-        let imageviewer;
+        let imageViewer;
         let exitViewer;
-        let metadata;
+        let metadata = {};
+        let metadataViewer;
         let revealCounter = 0;
         let revealInterval;
         let madeFullscreen = false;
@@ -166,6 +172,30 @@
             document.querySelector('footer').hidden = false;
         }
 
+        function getJSONData(url) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url, false); // `false` makes the request synchronous
+            try {
+                xhr.send(); // Send the request
+                if (xhr.status === 200) {
+                return JSON.parse(xhr.responseText); // Parse and return JSON data
+                } else {
+                console.error('Request failed with status:', xhr.status);
+                return null;
+                }
+            } catch (error) {
+                console.error('Error fetching JSON:', error);
+                return null;
+            }
+        }
+
+        function loadMetadata() { 
+            for (let i = 0; i < imgNames.length; i++) {
+                let metadataPath = `./metadata/${imgNames[i]}.json`;
+                metadata[imgNames[i]] = getJSONData(metadataPath);
+            }
+        }
+
         function loadThumb(imgName) {
             gallery.innerHTML += `<img onclick='viewFull("${imgName}")' id='${imgName}' src='./thumbs/${imgName}.jpg' class='thumbhidden' alt='${imgName}'/>`;
         }
@@ -186,44 +216,36 @@
         }
 
         function viewFull(imgName) {
+            viewMetadata(imgName);
             exitViewer.hidden = false;
-            metadata.hidden = false;
+            metadataViewer.hidden = false;
             madeFullscreen = doFullscreen && !document.fullscreenElement;
-            fullPath = `'./fulls/${imgName}.jpg'`;
+            fullPath = `./fulls/${imgName}.jpg`;
             if(!preload) {
                 preloadImage(fullPath);
             }
             if(madeFullscreen) {
                 document.body.requestFullscreen();
             }
-            imageviewer.innerHTML += `<img id='full' src=${fullPath}/>`;
-            imageviewer.hidden = false;
-            viewMetadata(imgName);
+            imageViewer.innerHTML += `<img id='full' src='${fullPath}'/>`;
+            imageViewer.hidden = false;
         }
 
-        function getJSONData(url) {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', url, false); // `false` makes the request synchronous
-            try {
-                xhr.send(); // Send the request
-                if (xhr.status === 200) {
-                return JSON.parse(xhr.responseText); // Parse and return JSON data
-                } else {
-                console.error('Request failed with status:', xhr.status);
-                return null;
-                }
-            } catch (error) {
-                console.error('Error fetching JSON:', error);
-                return null;
-            }
-        }
+
 
         function viewMetadata(imgName) {
-            let metadataPath = `./metadata/${imgName}.json`;
-            let jsonData = getJSONData(metadataPath);
-            let cameraModel = jsonData['Image Model'];
-            metadata.innerHTML += `<p>${imgName}.jpg</p>`;
-            metadata.innerHTML += `<h2>📷: ${cameraModel}</h2>`;
+            /* Extracting Metadata for Image */
+            let imgData = metadata[imgName];
+            let cameraModel = imgData['Image Model'];
+            let width = imgData['Image ImageWidth'];
+            let height = imgData['Image ImageLength'];
+            let resolution = width*height/(10**6);
+            
+            /* Displaying Metadata */
+            metadataViewer.innerHTML += `<h2>${imgName}.jpg</h2>`;
+            metadataViewer.innerHTML += `<p>📷: ${cameraModel}</p>`;
+            metadataViewer.innerHTML += `<p>Resolution: ${width}x${height} (${resolution} MP)</p>`;
+            console.log(metadataViewer);
         }
 
         function goHome() {
@@ -232,8 +254,8 @@
 
         function exitView() {
             exitViewer.hidden = true;
-            metadata.hidden = true;
-            metadata.innerHTML = '<h1>Metadata:</h1>';
+            metadataViewer.hidden = true;
+            metadataViewer.innerHTML = '';
             let full = document.getElementById('full');
             console.log(full);
             if(full != null) {
@@ -245,7 +267,7 @@
                 } 
                 setTimeout(function() {
                     full.remove();
-                    imageviewer.hidden = true;
+                    imageViewer.hidden = true;
                 },250);
             }
         }
@@ -275,11 +297,12 @@
                 preloadFulls();
             }
             gallery = document.getElementById('gallery');
-            imageviewer = document.getElementById('imageviewer');
+            imageViewer = document.getElementById('imageViewer');
             title = document.getElementById('title');
-            metadata = document.getElementById('metadata');
+            metadataViewer = document.getElementById('metadataViewer');
             exitViewer = document.getElementById('exitViewer');
             loadThumbs();
+            loadMetadata();
             revealInterval = setInterval(revealThumbs,75);
             titleInterval = setInterval(fillTitle,75);
         }
@@ -297,11 +320,9 @@
     <body>
         <h1 id="title"></h1>
         <div id="gallery"></div>
-        <div hidden id="imageviewer">
+        <div hidden id="imageViewer">
             <button hidden id="exitViewer" onclick="exitView()">X</button>
-            <div hidden id="metadata">
-                <h1>Metadata:</h1>
-            </div>
+            <div hidden id="metadataViewer"></div>
         </div>
     </body>
 
