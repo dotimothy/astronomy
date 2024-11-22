@@ -79,6 +79,8 @@
             object-fit: cover;
             animation: grow 0.5s;
             transition: 0.5s;
+            user-select: none;
+            pointer-events: none;
         }
         @keyframes grow {
             0% {
@@ -96,10 +98,12 @@
         }
         #exitViewer {
             position: fixed;
+            font-size: 7.5em;
+            color: white;
             top: 5%;
             right: 5%;
-            opacity: 5%;
-            transition: 0.25s;
+            opacity: 4%;
+            transition: ease-in 0.5s;
             z-index: 2;
         }
         #exitViewer:hover {
@@ -116,7 +120,6 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let preload = urlParams.has('preload') && urlParams.get('preload') == 'true';
-        let dev = urlParams.has('mode') && urlParams.get('mode') == 'dev';
         let doFullscreen = !isMobileDevice();
         let gallery;
         let imageviewer;
@@ -184,13 +187,13 @@
             if(full != null) {
                 full.style.width = '0%'; 
                 full.style.height = '0%';
+                if(madeFullscreen) {
+                    madeFullscreen = false;
+                    document.exitFullscreen();        
+                } 
                 setTimeout(function() {
                     full.remove();
                     imageviewer.hidden = true;
-                    if(madeFullscreen) {
-                        document.exitFullscreen();
-                        madeFullscreen = false;
-                    } 
                 },500);
             }
         }
@@ -206,9 +209,9 @@
             revealInterval = setInterval(revealImages,75);
         }
 
-        document.addEventListener('keydown', function(e) {
-            if (e.key == "Escape") {
-                console.log('Escape Key Pressed');
+        document.addEventListener('fullscreenchange', function(e) {
+            if (!document.fullscreenElement) {
+                madeFullscreen = false;
                 exitViewer();
             }
         });
@@ -218,7 +221,7 @@
         <h1 id="title">🌌 Timothy's Astrophotography Gallery 🌌</h1>
         <div id="gallery"></div>
         <div hidden id="imageviewer">
-            <button id="exitViewer" onclick="exitViewer()">❌</button>
+            <button id="exitViewer" onclick="exitViewer()">X</button>
         </div>
     </body>
 
