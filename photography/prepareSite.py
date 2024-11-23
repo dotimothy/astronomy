@@ -32,17 +32,22 @@ def getThumbs(check=False,size=(400,300)):
             resized = cv.resize(img,size)
             cv.imwrite(thumbPath,resized,[cv.IMWRITE_JPEG_QUALITY,80])
 
+def getFileSize(filePath):
+    return os.stat(filePath).st_size
+
 def getMetadatas(check=False):
     for name in tqdm(imgNames):
         fullPath = f'{fullDir}/{name}.jpg'
         metadataPath = f'{metadataDir}/{name}.json'
-        if(not(check) or not(os.path.exists(metadataPath))):
+        if(not(check) or not(os.path.exists(metadataPath))): # EXIF Metadata
             with open(fullPath,'rb') as full:
                 tags = exifread.process_file(full)
                 metadata = {} 
             for tag in tags.keys():
                 if tag not in ('JPEGThumbnail', 'TIFFThumbnail'):
                     metadata[tag] = str(tags[tag])
+            # Custom Metadata
+            metadata['File Size'] = getFileSize(fullPath)
             with open(metadataPath, 'w') as metadataFile:
                 json.dump(metadata,metadataFile,indent=4)
 

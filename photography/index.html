@@ -12,6 +12,14 @@
     </head>
 
     <style>
+        /* Mobile Phone */
+        @media(max-width: 480px) { 
+            .thumb,.thumbhidden {
+                width: calc(100%/2);
+            }
+        }
+
+        /* Global CSS */
         body {
             background-color: black;
         }
@@ -30,15 +38,23 @@
             font-size: 1.5em;
             font-weight: lighter;
         }
+        a {
+            color: blue;
+            transition: 0.25s;
+        }
+        a:hover {
+            opacity: 50%;
+            transition: 0.25s;
+        }
         #gallery {
             display: inline-block;
         }
         .thumbhidden {
-            width:14.28%;
+            width: calc(100%/5);
             opacity: 0%;
         }
         .thumb {
-            width:14.28%;
+            width: calc(100%/5);
             animation: fadein 0.5s;
             opacity: 100%;
         }
@@ -64,6 +80,7 @@
         }
         button:active {
             transform: translateY(10px);
+            transition: 0.125s;
         }
         #imageViewer {
             position: fixed;
@@ -109,6 +126,7 @@
             opacity: 4%;
             z-index: 2;
             line-height: 1.25em;
+            animation: sneak 1s;
             transition: 0.25s ease-in;
         }
         #metadataViewer:hover {
@@ -123,27 +141,41 @@
             right: 5%;
             opacity: 4%;
             transition: ease-in 0.25s;
+            animation: sneak 1s;
             z-index: 2;
         }
         #exitViewer:hover {
             opacity: 100%;
             transition: 0.25s;
         }
+        @keyframes sneak {
+            0% {opacity: 0%;}
+            25% {opacity: 0%;}
+            50% {opacity: 80%;}
+            75% {opacity: 80%;}
+            100% {opacity: 4%;}
+        }
         #home {
             position: fixed;
             font-size: 6em;
             bottom: 5%;
             right: 4%;
+            opacity: 5%;
+            transition: ease-in 0.25s;
+        }
+        #home:hover {
+            opacity: 100%;
+            transition: 0.25s;
         }
     </style>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let preload = urlParams.has('preload') && urlParams.get('preload') == 'true';
-        let doFullscreen = !isMobileDevice() && (!urlParams.has('fullscreen') || urlParams.get('fullscreen') == 'true');
+        let doFullscreen = !isMobileDevice() && (!urlParams.has('fullscreen'));
+        let debug = urlParams.has('debug');
         let gallery;
         let imageViewer;
-        let exitViewer;
         let metadata = {};
         let metadataViewer;
         let revealCounter = 0;
@@ -217,8 +249,6 @@
 
         function viewFull(imgName) {
             viewMetadata(imgName);
-            exitViewer.hidden = false;
-            metadataViewer.hidden = false;
             madeFullscreen = doFullscreen && !document.fullscreenElement;
             fullPath = `./fulls/${imgName}.jpg`;
             if(!preload) {
@@ -228,24 +258,59 @@
                 document.body.requestFullscreen();
             }
             imageViewer.innerHTML += `<img id='full' src='${fullPath}'/>`;
+            imageViewer.innerHTML += `<button id="exitViewer" onclick="exitView()">X</button>`;
             imageViewer.hidden = false;
+            let full = document.getElementById('full');
+            full.style.pointerEvents = 'none';
         }
 
-
+        function exifToDate(exifTimestamp) {
+            const [datePart, timePart] = exifTimestamp.split(' ');
+            const [year, month, day] = datePart.split(':');
+            const [hour, minute, second] = timePart.split(':');
+            const jsDate = new Date(year, month - 1, day, hour, minute, second);
+            return jsDate;
+        }
+        function formatDate(date) {
+            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const dayOfWeek = daysOfWeek[date.getDay()];
+            const month = months[date.getMonth()];
+            const dayOfMonth = date.getDate();
+            const year = date.getFullYear();
+            const hours = date.getHours() % 12   || 12; // 12-hour format
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const ampm = date.getHours() >= 12 ? 'PM' : 'AM';
+            return `${dayOfWeek}, ${month} ${dayOfMonth}, ${year} @ ${hours}:${minutes} ${ampm}`;
+        }
 
         function viewMetadata(imgName) {
+            let metadataViewer = document.createElement('div');
+            metadataViewer.id = 'metadataViewer';
             /* Extracting Metadata for Image */
             let imgData = metadata[imgName];
             let cameraModel = imgData['Image Model'];
+            let captureDate = exifToDate(imgData['Image DateTime'])
             let width = imgData['Image ImageWidth'];
             let height = imgData['Image ImageLength'];
             let resolution = width*height/(10**6);
+            let fileSizeMB = Math.round((imgData['File Size']/(1000**2)+Number.EPSILON)*100)/100;
+            let ISO = eval(imgData['EXIF ISOSpeedRatings']);
+            let exposureTime = eval(imgData['EXIF ExposureTime']);;
+            let fNumber = eval(imgData['EXIF FNumber']);
+            let focalLength35 = eval(imgData['EXIF FocalLengthIn35mmFilm']);
+            let ev = eval(imgData['EXIF ExposureBiasValue']);
             
             /* Displaying Metadata */
             metadataViewer.innerHTML += `<h2>${imgName}.jpg</h2>`;
+            metadataViewer.innerHTML += `<p>🗓️ ${formatDate(captureDate)}</p>`;
             metadataViewer.innerHTML += `<p>📷: ${cameraModel}</p>`;
-            metadataViewer.innerHTML += `<p>Resolution: ${width}x${height} (${resolution} MP)</p>`;
-            console.log(metadataViewer);
+            metadataViewer.innerHTML += `<p>${fileSizeMB} MB | ${width}x${height} | ${resolution} MP</p>`;
+            metadataViewer.innerHTML += `<p>ISO ${ISO} | ${focalLength35}mm | ${ev}ev | F${fNumber} | ${exposureTime}" s</p>`
+            if(debug) {
+                console.log(metadataViewer);
+            }
+            imageViewer.appendChild(metadataViewer);
         }
 
         function goHome() {
@@ -253,20 +318,25 @@
         }
 
         function exitView() {
+            let full = document.getElementById('full');
+            let metadataViewer = document.getElementById('metadataViewer');
+            let exitViewer = document.getElementById('exitViewer');
             exitViewer.hidden = true;
             metadataViewer.hidden = true;
-            metadataViewer.innerHTML = '';
-            let full = document.getElementById('full');
-            console.log(full);
             if(full != null) {
                 full.style.width = '0%'; 
                 full.style.height = '0%';
                 if(madeFullscreen) {
                     madeFullscreen = false;
-                    document.exitFullscreen();        
+                    document.exitFullscreen();  
+                    if(debug) {
+                        console.log('Exiting Full Screen');
+                    }      
                 } 
                 setTimeout(function() {
                     full.remove();
+                    metadataViewer.remove(); 
+                    exitViewer.remove();
                     imageViewer.hidden = true;
                 },250);
             }
@@ -293,14 +363,15 @@
 
         window.onload = function() {
             if(preload) {
-                console.log('Preloading Full Res Images!');
+                if(debug) {
+                    console.log('Preloading Full Res Images!');
+                }
                 preloadFulls();
             }
             gallery = document.getElementById('gallery');
             imageViewer = document.getElementById('imageViewer');
             title = document.getElementById('title');
             metadataViewer = document.getElementById('metadataViewer');
-            exitViewer = document.getElementById('exitViewer');
             loadThumbs();
             loadMetadata();
             revealInterval = setInterval(revealThumbs,75);
@@ -313,17 +384,12 @@
                 exitView();
             }
         });
-
-
     </script>
 
     <body>
         <h1 id="title"></h1>
         <div id="gallery"></div>
-        <div hidden id="imageViewer">
-            <button hidden id="exitViewer" onclick="exitView()">X</button>
-            <div hidden id="metadataViewer"></div>
-        </div>
+        <div hidden id="imageViewer"></div>
     </body>
 
     <footer hidden>
