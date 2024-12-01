@@ -168,6 +168,12 @@
             opacity: 100%;
             transition: 0.25s;
         }
+        @media only screen and (max-width: 1000px) {
+            h1 { font-size: 4em;}
+            h2 {font-size: 2em;}
+            #metadataViewer h2, #metadataViewer p {font-size: 3em; }
+            .thumb, .thumbhidden { width: 100%;}
+        }
     </style>
 
     <script>
@@ -249,6 +255,7 @@
         }
 
         function viewFull(imgName) {
+            title.hidden = false;
             viewMetadata(imgName);
             gallery.style.pointerEvents = 'none';
             madeFullscreen = doFullscreen && !document.fullscreenElement;
@@ -291,21 +298,21 @@
             metadataViewer.id = 'metadataViewer';
             /* Extracting Metadata for Image */
             let imgData = metadata[imgName];
-            let cameraModel = imgData['Image Model'];
-            let captureDate = exifToDate(imgData['Image DateTime'])
-            let width = imgData['EXIF ExifImageWidth'];
-            let height = imgData['EXIF ExifImageLength'];
-            let resolution = width*height/(10**6);
-            let fileSizeMB = Math.round((imgData['File Size']/(1000**2)+Number.EPSILON)*100)/100;
-            let ISO = eval(imgData['EXIF ISOSpeedRatings']);
-            let exposureTime = eval(imgData['EXIF ExposureTime']);;
-            let fNumber = eval(imgData['EXIF FNumber']);
-            let focalLength35 = eval(imgData['EXIF FocalLengthIn35mmFilm']);
-            let ev = eval(imgData['EXIF ExposureBiasValue']);
+            let cameraModel = 'Image Model' in imgData ? imgData['Image Model'] : 'N/A';
+            let captureDate = 'Image DateTime' in imgData ? exifToDate(imgData['Image DateTime']) : 'N/A';
+            let width = 'Image ImageWidth' in imgData ? imgData['Image ImageWidth'] : 'N/A';
+            let height = 'Image ImageLength' in imgData ? imgData['Image ImageLength'] : 'N/A';
+            let resolution = width != 'N/A' || height != 'N/A' ? width*height/(10**6) : 'N/A';
+            let fileSizeMB = 'File Size' in imgData ? Math.round((imgData['File Size']/(1000**2)+Number.EPSILON)*100)/100 : 'N/A';
+            let ISO = 'EXIF ISOSpeedRatings' in imgData ? eval(imgData['EXIF ISOSpeedRatings']) : 'N/A';
+            let exposureTime = 'EXIF ExposureTime' in imgData ? eval(imgData['EXIF ExposureTime']) : 'N/A';
+            let fNumber = 'EXIF FNumber' in imgData ? eval(imgData['EXIF FNumber']) : 'N/A';
+            let focalLength35 = 'EXIF FocalLengthIn35mmFilm' in imgData ? eval(imgData['EXIF FocalLengthIn35mmFilm']) : 'N/A';
+            let ev = 'EXIF ExposureBiasValue' in imgData ? eval(imgData['EXIF ExposureBiasValue']) : 'N/A';
             
             /* Displaying Metadata */
             metadataViewer.innerHTML += `<h2>${imgName}.jpg</h2>`;
-            metadataViewer.innerHTML += `<p>🗓️ ${formatDate(captureDate)}</p>`;
+            metadataViewer.innerHTML += `<p>🗓️ ${captureDate != 'N/A' ? formatDate(captureDate) : 'N/A'}</p>`;
             metadataViewer.innerHTML += `<p>📷: ${cameraModel}</p>`;
             metadataViewer.innerHTML += `<p>${fileSizeMB} MB | ${width}x${height} | ${resolution} MP</p>`;
             metadataViewer.innerHTML += `<p>ISO ${ISO} | ${focalLength35}mm | ${ev}ev | F${fNumber} | ${exposureTime}" s</p>`
@@ -321,6 +328,7 @@
 
         function exitView() {
             gallery.style.pointerEvents = 'auto';
+            title.hidden = false;
             let full = document.getElementById('full');
             let metadataViewer = document.getElementById('metadataViewer');
             let exitViewer = document.getElementById('exitViewer');
