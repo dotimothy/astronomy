@@ -407,6 +407,16 @@
             let copyUrl = `${window.parent.location.href.split('?')[0]}?lat=${latitude}&lon=${longitude}`;
             navigator.clipboard.writeText(copyUrl);
             console.log(`Share Link Copied: ${copyUrl}`);
+            if (Notification.permission === 'granted') {
+                new Notification('Share Link Copied!');
+            }
+            else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then(function(permission) {
+                    if (permission === "granted") {
+                        new Notification('Hello World!');
+                    }
+                });
+            }
             goToLocation(latitude,longitude);
         }
 
