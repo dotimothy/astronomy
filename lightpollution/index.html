@@ -54,6 +54,9 @@
             transform: translateY(10px);
             transition: 0.125s;
         }
+        #home {
+            bottom: 11%;
+        }
         #currentlocation {
             bottom: 0.25%;
         }
@@ -66,6 +69,7 @@
     <body>
 
         <div id="map"></div>
+        <h1 class="custombutton" id="home" onclick="goHome()">🌌</h1>
         <h1 class="custombutton" id="fullscreentoggle" onclick="fullscreenToggle()">⛶</h1>
         <h1 class="custombutton" id="currentlocation" onclick="gotoCurrentLocation()">📍</h1>
 
@@ -444,6 +448,10 @@
             map.setView([latitude, longitude], 11, {animate: true, duration: 1});
             
         }   
+        
+        function goHome() {
+            window.location.href='../index.html';
+        }
 
         function gotoCurrentLocation() { 
             if(navigator.geolocation) {
