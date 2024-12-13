@@ -413,7 +413,7 @@
             else if (Notification.permission !== 'denied') {
                 Notification.requestPermission().then(function(permission) {
                     if (permission === "granted") {
-                        new Notification('Hello World!');
+                        new Notification('Share Link Copied!');
                     }
                 });
             }
