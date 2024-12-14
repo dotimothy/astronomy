@@ -95,8 +95,8 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            animation: grow 0.5s;
-            transition: 0.25s;
+            animation: grow 0.25s;
+            transition: 0.2s;
             user-select: none;
             pointer-events: none;
         }
@@ -141,13 +141,6 @@
             animation: sneak 1s;
             z-index: 2;
         }
-        @keyframes sneak {
-            0% {opacity: 0%;}
-            25% {opacity: 0%;}
-            50% {opacity: 80%;}
-            75% {opacity: 80%;}
-            100% {opacity: 2%;}
-        }
         #home {
             position: fixed;
             font-size: 6em;
@@ -188,19 +181,35 @@
             #metadataViewer h2, #metadataViewer p {font-size: 3em; }
             .thumb, .thumbhidden { width: 100%;}
         }
+        @keyframes sneak {
+            0% {opacity: 0%;}
+            25% {opacity: 0%;}
+            50% {opacity: 80%;}
+            75% {opacity: 80%;}
+            100% {opacity: 2%;}
+        }
     </style>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        let preload = urlParams.has('preload') && urlParams.get('preload') == 'true';
-        let doFullscreen = !isMobileDevice() && (!urlParams.has('fullscreen'));
+        let doFullscreen = (isMobileDevice() && urlParams.has('fullscreen')) || (!isMobileDevice() && (!urlParams.has('fullscreen')));
         let debug = urlParams.has('debug');
+        let datasaver = urlParams.has('datasaver');
+        let fullDir = datasaver ? 'thumbs' : 'fulls';
+        let preload = urlParams.has('preload');
         let gallery;
         let imageViewer;
         let metadata = {};
         let metadataViewer;
         let revealCounter = 0;
         let revealInterval;
+        let isMobile;
+        let keyAction;
+        let swipeThresh = 75;
+        let touchstartX = 0;
+        let touchendX = 0;
+        let touchStartAction;
+        let touchEndAction;
         let madeFullscreen = false;
 
         function isMobileDevice() {
@@ -209,13 +218,14 @@
 
         function preloadFulls() {
             for(let i = 0; i < imgNames.length; i++) {
-                preloadImage(`./fulls/${imgNames[i]}.jpg`); 
+                preloadImage(`./${fullDir}/${imgNames[i]}.jpg`); 
             }
         }
 
         function preloadImage(url) {
-            var img = new Image();
+            img = new Image();
             img.src = url;
+            return img;
         }
 
         function loadThumbs() {
@@ -268,56 +278,95 @@
             }
         }
 
+        function checkDirection() {
+            return touchendX < touchstartX; // true: left, false: right/none
+        }
+
+        function checkLength() {
+            return Math.abs(touchstartX-touchendX) >= swipeThresh;
+        }
+
         function viewFull(imgName) {
+            document.body.style.overflow = 'hidden';
             title.hidden = false;
             viewMetadata(imgName);
             gallery.style.pointerEvents = 'none';
             madeFullscreen = doFullscreen && !document.fullscreenElement;
             imgNameIndex = imgNames.indexOf(imgName);
-            fullPath = `./fulls/${imgName}.jpg`;
-            if(!preload) {
-                preloadImage(fullPath);
-            }
+            fullPath = `./${fullDir}/${imgName}.jpg`;
             if(madeFullscreen) {
                 document.body.requestFullscreen();
             }
-            imageViewer.innerHTML += `<img id='full' src='${fullPath}'/>`;
+            img = preloadImage(fullPath); 
+            img.id = 'full';
+            imageViewer.appendChild(img);
             imageViewer.innerHTML += `<button id="exitViewer" onclick="exitView()">X</button>`;
-            if(imgNameIndex != 0) {
-                imageViewer.innerHTML += `<button id="leftArrow" onclick="changeFull('${imgNames[imgNameIndex-1]}')"><</button>`;
+            if(!isMobile) {
+                if(imgNameIndex != 0) { //button controls if in desktop
+                    imageViewer.innerHTML += `<button id="leftArrow" onclick="changeFull('${imgNames[imgNameIndex-1]}')"><</button>`;
+                }
+                if(imgNameIndex != imgNames.length-1) {
+                    imageViewer.innerHTML += `<button id="rightArrow" onclick="changeFull('${imgNames[imgNameIndex+1]}')">></button>`;
+                }
             }
-            if(imgNameIndex != imgNames.length-1) {
-                imageViewer.innerHTML += `<button id="rightArrow" onclick="changeFull('${imgNames[imgNameIndex+1]}')">></button>`;
-            }
-            imageViewer.hidden = false;
+            document.addEventListener('keydown', keyAction = function(e) { //keyboard controls
+                console.log(`In ImageViewer User Pressed ${e.code}`)
+                if(e.code == "ArrowLeft" && imgNameIndex != 0) {
+                    changeFull(imgNames[imgNameIndex-1]);
+                } else if(e.code == "ArrowRight" && imgNameIndex != imgNames.length-1) {
+                    changeFull(imgNames[imgNameIndex+1]);
+                } else if(e.code == "Escape") {
+                    exitView(); 
+                }
+            });
+            document.addEventListener('touchstart', touchStartAction = function(e) { //touchscreen controls
+                touchstartX = e.changedTouches[0].screenX;
+            });
+            document.addEventListener('touchend', touchEndAction = function(e) {
+                touchendX = e.changedTouches[0].screenX;
+                if(checkLength()) {
+                    dir = checkDirection() ? 1 : -1;
+                    console.log(`In ImageViewer User Swiped ${dir == -1 ? 'Left' : 'Right'}`); 
+                    if((imgNameIndex != 0 && dir == -1) || (imgNameIndex != imgNames.length-1 && dir == 1)) {
+                        changeFull(imgNames[imgNameIndex+dir]);
+                    }
+                }
+            });
             let full = document.getElementById('full');
             full.style.pointerEvents = 'none';
+            imageViewer.hidden = false;
         }
 
         function changeFull(imgName) {
-            let full = document.getElementById('full');
-            full.style.width = '0%';
-            full.style.height = '0%';
-            full.style.bottom = '50%';
-            prevImgName = full.src.split('/fulls/')[1].split('.jpg')[0];
-            if(imgNames.indexOf(prevImgName) < imgNames.indexOf(imgName)) {
-                full.style.right = '0%';
-            }
-            else if(imgNames.indexOf(prevImgName) > imgNames.indexOf(imgName)) {
-                full.style.left = '0%';
-            }
-            setTimeout(function() {
-                full.remove();
-                document.getElementById('metadataViewer').remove();
-                document.getElementById('exitViewer').remove();
+            document.removeEventListener('keydown',keyAction);
+            document.removeEventListener('touchstart',touchStartAction);
+            document.removeEventListener('touchend',touchEndAction);
+            if(!isMobile) {
                 if(document.getElementById('leftArrow') != null){ 
                     document.getElementById('leftArrow').remove();
                 }
                 if(document.getElementById('rightArrow') != null){ 
                     document.getElementById('rightArrow').remove();
                 }
+            }
+            let full = document.getElementById('full');
+            full.style.width = '0%';
+            full.style.height = '0%';
+            full.style.bottom = '50%';
+            prevImgName = full.src.split(`/${fullDir}/`)[1].split('.jpg')[0];
+            if(imgNames.indexOf(prevImgName) < imgNames.indexOf(imgName)) {
+                full.style.right = '0%';
+            }
+            else if(imgNames.indexOf(prevImgName) > imgNames.indexOf(imgName)) {
+                full.style.left = '0%';
+            }
+            
+            document.getElementById('metadataViewer').remove();
+            document.getElementById('exitViewer').remove();
+            setTimeout(function() {
+                full.remove();
                 viewFull(imgName);
-            },250);
+            },200);
         }
 
         function exifToDate(exifTimestamp) {
@@ -347,8 +396,8 @@
             let imgData = metadata[imgName];
             let cameraModel = 'Image Model' in imgData ? imgData['Image Model'] : 'N/A';
             let captureDate = 'Image DateTime' in imgData ? exifToDate(imgData['Image DateTime']) : 'N/A';
-            let width = 'Image ImageWidth' in imgData ? imgData['Image ImageWidth'] : 'N/A';
-            let height = 'Image ImageLength' in imgData ? imgData['Image ImageLength'] : 'N/A';
+            let width = 'EXIF ExifImageWidth' in imgData ? imgData['EXIF ExifImageWidth'] : 'EXIF ImageWidth' in imgData ? imgData['EXIF ImageWidth'] : 'N/A';
+            let height = 'EXIF ExifImageLength' in imgData ? imgData['EXIF ExifImageLength'] : 'EXIF ImageLength' in imgData ? imgData['EXIF ImageLength'] : 'N/A';
             let resolution = width != 'N/A' || height != 'N/A' ? width*height/(10**6) : 'N/A';
             let fileSizeMB = 'File Size' in imgData ? Math.round((imgData['File Size']/(1000**2)+Number.EPSILON)*100)/100 : 'N/A';
             let ISO = 'EXIF ISOSpeedRatings' in imgData ? eval(imgData['EXIF ISOSpeedRatings']) : 'N/A';
@@ -374,6 +423,10 @@
         }
 
         function exitView() {
+            document.removeEventListener('keydown',keyAction);
+            document.removeEventListener('touchstart',touchStartAction);
+            document.removeEventListener('touchend',touchEndAction);
+            document.body.style.overflow = 'auto';
             gallery.style.pointerEvents = 'auto';
             title.hidden = false;
             let full = document.getElementById('full');
@@ -384,6 +437,14 @@
             exitViewer.hidden = true;
             metadataViewer.hidden = true;
             if(full != null) {
+                if(!isMobile) {
+                    if(leftArrow != null) {
+                        leftArrow.remove();
+                        }
+                    if(rightArrow != null) {
+                        rightArrow.remove();
+                    }
+                }
                 full.style.width = '0%'; 
                 full.style.height = '0%';
                 if(madeFullscreen) {
@@ -397,14 +458,8 @@
                     full.remove();
                     metadataViewer.remove(); 
                     exitViewer.remove();
-                    if(leftArrow != null) {
-                        leftArrow.remove();
-                    }
-                    if(rightArrow != null) {
-                        rightArrow.remove();
-                    }
                     imageViewer.hidden = true;
-                },250);
+                },125);
             }
         }
         
@@ -438,6 +493,7 @@
             imageViewer = document.getElementById('imageViewer');
             title = document.getElementById('title');
             metadataViewer = document.getElementById('metadataViewer');
+            isMobile = isMobileDevice();
             loadThumbs();
             loadMetadata();
             revealInterval = setInterval(revealThumbs,75);
@@ -445,7 +501,7 @@
         }
 
         document.addEventListener('fullscreenchange', function(e) {
-            if (!document.fullscreenElement) {
+            if(!document.fullscreenElement) {
                 madeFullscreen = false;
                 exitView();
             }
