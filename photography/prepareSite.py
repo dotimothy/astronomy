@@ -64,6 +64,6 @@ if __name__ == '__main__':
     print('Making Image List!')
     makeImgList()
     print('Making Thumbnails!')
-    getThumbs(check=False,size=(1600,1200),quality=70)
+    getThumbs(check=False,size=(1600,1200),quality=66)
     print('Extracting Metadata!')
     getMetadatas(check=False)

@@ -95,7 +95,7 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            animation: grow 0.5s;
+            animation: grow 0.25s;
             transition: 0.25s;
             user-select: none;
             pointer-events: none;
@@ -194,15 +194,19 @@
         const urlParams = new URLSearchParams(window.location.search);
         let doFullscreen = (isMobileDevice() && urlParams.has('fullscreen')) || (!isMobileDevice() && (!urlParams.has('fullscreen')));
         let debug = urlParams.has('debug');
-        let datasaver = urlParams.has('datasaver');
-        let fullDir = datasaver ? 'thumbs' : 'fulls';
+        let fullRes = urlParams.has('full');
+        let fullDir = fullRes ? 'fulls' : 'thumbs';
         let preload = urlParams.has('preload');
+        let galleryView = urlParams.has('gallery');
         let gallery;
         let imageViewer;
         let metadata = {};
         let metadataViewer;
-        let revealCounter = 0;
         let revealInterval;
+        let revealCounter = 0;
+        let galleryCounter = 0;
+        let galleryDuration = 3000;
+        let galleryInterval;
         let isMobile;
         let keyAction;
         let swipeThresh = 75;
@@ -353,11 +357,11 @@
             prevImgName = full.src.split(`/${fullDir}/`)[1].split('.jpg')[0];
             if(imgNames.indexOf(prevImgName) < imgNames.indexOf(imgName)) {
                 full.style.right = '0%';
-                full.style.translate = '100%';
+                full.style.translate = '-100%';
             }
             else if(imgNames.indexOf(prevImgName) > imgNames.indexOf(imgName)) {
                 full.style.left = '0%';
-                full.style.translate = '-100%';
+                full.style.translate = '100%';
             }
             prevFullscreen = madeFullscreen;
             setTimeout(function() {
@@ -366,7 +370,7 @@
                 document.getElementById('exitViewer').remove();
                 viewFull(imgName);
                 madeFullscreen = prevFullscreen;
-            },200);
+            },125);
             
         }
 
@@ -464,7 +468,7 @@
                     metadataViewer.remove(); 
                     exitViewer.remove();
                     imageViewer.hidden = true;
-                },250);
+                },200);
             }
         }
         
@@ -487,6 +491,18 @@
 
         }
 
+        function viewGallery() {
+            if(galleryCounter == 0) {
+                viewFull(imgNames[galleryCounter]);
+            } else if(galleryCounter < imgNames.length) {
+                changeFull(imgNames[galleryCounter]);
+            } else {
+                galleryCounter = 0;
+                changeFull(imgNames[galleryCounter]);
+            }
+            galleryCounter++;
+        }
+
         window.onload = function() {
             if(preload) {
                 if(debug) {
@@ -497,12 +513,19 @@
             gallery = document.getElementById('gallery');
             imageViewer = document.getElementById('imageViewer');
             title = document.getElementById('title');
-            metadataViewer = document.getElementById('metadataViewer');
             isMobile = isMobileDevice();
-            loadThumbs();
             loadMetadata();
-            revealInterval = setInterval(revealThumbs,75);
+            if(galleryView) {
+                completedTitle = '🌌 Gallery Mode! 🌌';
+                doFullscreen = false;
+                galleryInterval = setInterval(viewGallery,galleryDuration);
+            }
+            else {
+                loadThumbs();
+                revealInterval = setInterval(revealThumbs,75);
+            }
             titleInterval = setInterval(fillTitle,75);
+
         }
 
         document.addEventListener('fullscreenchange', function(e) {
