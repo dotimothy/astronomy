@@ -9,7 +9,14 @@ This website contains interesting project forks in Astronomy for educational pur
 - [💡Light Pollution Visualization](https://timothydo.me/astronomy/lightpollution)
 - [📷 Astrophotography Gallery](https://timothydo.me/astronomy/photography)
 
+## Setup 
+To run the projects, install the following dependencies by invoking 
+<code>pip install -r requirements.txt</code>
+then, you should be able to run the projects!!!
+
 ## References
 This repository would not have been possible without the following references:
-- [Light Pollution Map](https://github.com/djlorenz/djlorenz.github.io/tree/master/astronomy/) by Professor [David J. Lorenz](https://djlorenz.github.io/)
+- [NASA VIIRS Dataset](https://www.earthdata.nasa.gov/data/instruments/viirs))
+- [VIIRS Nightime Lights Map Composite](https://eogdata.mines.edu/products/vnl/#credit)
+- [Light Pollution Atlas](https://github.com/djlorenz/djlorenz.github.io/tree/master/astronomy/) by Professor [David J. Lorenz](https://djlorenz.github.io/)
 - [Clear Dark Sky Chart](https://www.cleardarksky.com)

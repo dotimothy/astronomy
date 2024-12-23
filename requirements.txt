@@ -7,3 +7,7 @@ numpy
 tqdm
 jupyter
 torch
+h5py
+pandas
+xarray
+earthaccess
