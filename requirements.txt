@@ -4,6 +4,7 @@ pillow
 exifread
 matplotlib
 numpy 
+rawpy
 tqdm
 jupyter
 torch
