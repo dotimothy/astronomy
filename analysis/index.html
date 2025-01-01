@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+
+<!--- Astronomy Augumentation Website 🌌--->
+<!--- Modified by Timothy Do --->
+<html>
+    <base target="_blank">
+    <head>
+        <title>Astronomy Augumentation</title>
+        <meta charset="utf-8" />
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌌</text></svg>">
+        <link href='https://fonts.googleapis.com/css?family=Product+Sans' rel='stylesheet' type='text/css'>
+    </head>
+    
+    <style>
+        body {
+            background-color: black;
+            margin: 0;
+            overflow: hidden;
+            animation: fadein 2s;
+            font-family: Product Sans;
+        }
+        #content {
+            background-color: rgba(0,0,0,0.5);
+            width: 75%;
+            text-align: center;
+            margin: auto;
+            z-index: 0;
+            line-height: 6em;
+            animation: fadein 8s;
+        }
+        @keyframes fadein {
+            0% {opacity: 0%;}
+            100% {opacity: 100%;}
+        }
+        #content h1 {
+            color: white;
+            font-size: 4em;
+            text-shadow: 5px 5px blue;
+        }
+        #content button {
+            width:  75%; 
+            font-size: 2.5em;
+            text-align: center;
+            border-radius: 100px;
+            opacity: 100%;
+            transition: 0.125s;
+            padding: 0.5em 1em;
+        }
+        #content button:hover {
+            opacity: 50%;
+            transition: 0.125s;
+        }
+        #backgroundVid, #backgroundVidReversed {
+            position: fixed; 
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            left: 0;
+            top: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+        @media only screen and (max-width: 1500px) {
+            #content h1 { font-size: 2.5em;}
+            #content button { font-size: 2em;}
+        }
+    </style>
+
+    <script> 
+        let reversed = false;
+        let backgroundVid;
+        let backgroundVidReversed;
+        let audioContext;
+        let title;
+        let titleSpeed = 150; 
+        let titleInterval;
+        let content;
+
+        window.onload = function() {
+            content = document.getElementById('content');
+            setupBackground();
+            title = document.getElementById('title');
+            titleInterval = setInterval(fillTitle,titleSpeed);
+            content.hidden = false;
+        }
+
+        function setupBackground() {
+            backgroundVid = document.getElementById('backgroundVid');
+            backgroundVid.playbackRate = 0.5;
+            backgroundVidReversed = document.getElementById('backgroundVidReversed');
+            backgroundVidReversed.playbackRate = 0.5;
+            backgroundVid.addEventListener('timeupdate',function () {
+                //console.log(backgroundVid.currentTime);
+                if((!reversed && backgroundVid.currentTime >= backgroundVid.duration - 0.2)) {
+                    console.log('Reversing Background!');
+                    reversed = true;
+                    backgroundVidReversed.hidden = false; 
+                    setTimeout(function() {
+                        backgroundVid.currentTime = 0;
+                        backgroundVidReversed.currentTime = 0;
+                        backgroundVid.hidden = true;
+                    },200);
+                } 
+            });
+            backgroundVidReversed.addEventListener('timeupdate',function() {
+                //console.log(backgroundVidReversed.currentTime);
+                if((reversed && backgroundVidReversed.currentTime >= backgroundVidReversed.duration - 0.2)) {
+                    console.log('Forwarding Background!');
+                    reversed = false;
+                    backgroundVid.hidden = false;
+                    setTimeout(function() {
+                        backgroundVid.currentTime = 0;
+                        backgroundVidReversed.currentTime = 0;
+                        backgroundVidReversed.hidden = true;
+                    },100);
+                }
+            });
+        }
+
+        let i = 0;
+        let sparkle = 0;
+        let j = 0;
+        let completeTitle = '🌌Augmenting Astronomy by Timothy Do🌌';
+        function fillTitle() {
+            if(i < completeTitle.length) { // title forwards
+                if(i == 0 || i == completeTitle.length-2) {
+                    if(title.innerHTML != '🌌') {
+                        title.innerHTML +=  '🌌';
+                    }
+                    i++;
+                } else {
+                    title.innerHTML += completeTitle[i];
+                }
+                i++;
+            } else if(sparkle < 10) { // title sparkle
+                title.innerHTML = `${sparkle % 2 == 0? '🌌' : ''}Augmenting Astronomy by Timothy Do${sparkle % 2 == 1? '🌌' : ''}`;
+                sparkle += 1;
+            } else if(j < completeTitle.length) { // title backwards
+                if(j == 1 || j == completeTitle.length-1) {
+                    j++;
+                }
+                if(title.innerHTML != '🌌') {
+                    title.innerHTML = completeTitle.substring(0,completeTitle.length-j);
+                }
+                j++; 
+            } else {
+                i = 0;
+                sparkle = 0;
+                j = 0;
+                title.innerHTML = '🌌';
+            }
+        }
+
+        function changeTitleSpeed(newSpeed) {
+            titleSpeed = newSpeed;
+            clearInterval(titleInterval);
+            titleInterval = setInterval(fillTitle,titleSpeed);
+        }
+    </script>
+    
+    <body>
+        <div hidden id="content">
+            <h1 id="title"></h1>
+            <a href="./ImageStacking.html"><button>📷 Image Stacking</button></a> <br>
+            <a href="./LightPollution.html"><button>💡Light Pollution</button></a> <br>
+            <a href="https://github.com/dotimothy/astronomy"><button>🧑🏻‍💻Source Code</button></a> <br>
+        </div>
+        <div>
+            <iframe src="media/silence.mp3" allow="autoplay" id="audio" style="display: none"></iframe>
+            <video autoplay muted loop id="backgroundVid" src="../media/cholamestartrails.mp4" type="video/mp4" ></video>
+            <video hidden autoplay muted loop id="backgroundVidReversed" src="../media/cholamestartrailsreversed.mp4" type="video/mp4" ></video>
+            <audio hidden loop autoplay src="../media/herewithstars.mp3" id="backgroundAudio"></audio>
+        </div>
+    </body>
+
+</html>
