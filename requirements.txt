@@ -12,3 +12,4 @@ h5py
 pandas
 xarray
 earthaccess
+gdown
