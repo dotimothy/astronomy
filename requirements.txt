@@ -13,3 +13,4 @@ pandas
 xarray
 earthaccess
 gdown
+astroalign
