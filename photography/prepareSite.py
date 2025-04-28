@@ -4,15 +4,36 @@ import cv2 as cv
 import json
 from tqdm import tqdm
 import exifread
+from datetime import datetime
 
 fullDir = './fulls'
 thumbDir = './thumbs'
 metadataDir ='./metadata'
 imgNameJS = './imgNames.js'
 imgNames = [imgName.split('.jpg')[0] for imgName in os.listdir(fullDir) if imgName.endswith('.jpg')]
-imgNames.sort()
 newline = '\n'
 empty = '' 
+
+def get_exif_datetime(image_path):
+    try:
+        with open(image_path, 'rb') as img_file:
+            tags = exifread.process_file(img_file)
+        if 'EXIF DateTimeOriginal' in tags:
+            date_str = str(tags['EXIF DateTimeOriginal'])
+            return datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
+        elif 'Image DateTime' in tags:  #check for other date fields
+            date_str = str(tags['Image DateTime'])
+            return datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
+        else:
+            return datetime.min # Return the earliest possible datetime.
+    except Exception as e:
+        print(f"Error reading EXIF data from {image_path}: {e}")
+        return datetime.min  # Return a default value on error
+
+imgNames = sorted(
+    [imgName.split('.jpg')[0] for imgName in os.listdir(fullDir) if imgName.endswith('.jpg')],
+    key=lambda x: get_exif_datetime(os.path.join(fullDir, f'{x}.jpg'))
+)
 
 def makeImgList(split=2):
     with open(imgNameJS,'w') as file:
