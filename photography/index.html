@@ -808,8 +808,9 @@
         function fillTitle() {
             if (!title) return;
             if(j < completedTitle.length) {
-                 if(j == 0 || j == completedTitle.length - 1 || completedTitle[j] === '🌌') {
+                 if(j == 0 || j == completedTitle.length - 2 ) {
                     title.innerHTML += '🌌';
+                    j++;
                  } else {
                     title.innerHTML += completedTitle[j];
                  }
